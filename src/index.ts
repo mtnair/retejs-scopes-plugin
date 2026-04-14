@@ -147,6 +147,29 @@ export class ScopesPlugin<Schemes extends ExpectedScheme, T = never> extends Sco
   public async update(scopeId: NodeId) {
     await this.emit({ type: 'scopeupdated', data: { id: scopeId } })
   }
+
+  /**
+   * Returns ELK layout options for use with the auto-arrange plugin.
+   * When using the auto-arrange plugin with a custom padding function, pass this method's
+   * return value as the `options` callback in the auto-arrange preset so that ELK uses the
+   * same padding as the scopes plugin when computing the layout.
+   * @param nodeId Node ID
+   * @returns ELK layout options including the scopes padding
+   * @example
+   * ```ts
+   * arrange.addPreset((id) => {
+   *   const base = Presets.classic.setup()(id)
+   *   if (!base) return null
+   *   return { ...base, options: (id) => scopes.getLayoutOptions(id) }
+   * })
+   * ```
+   */
+  public getLayoutOptions(nodeId: NodeId): Record<string, string | number | boolean> {
+    const { top, left, right, bottom } = this.padding(nodeId)
+
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    return { 'elk.padding': `[top=${top},left=${left},bottom=${bottom},right=${right}]` }
+  }
 }
 
 export function getPickedNodes<S extends ExpectedScheme>(scopes: Scope<Scopes, [Requires<S>, Root<S>]>) {
